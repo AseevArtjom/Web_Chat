@@ -229,14 +229,12 @@
         const offcanvasBody = offcanvasElement.querySelector('.offcanvas-body');
 
         offcanvasElement.addEventListener('show.bs.offcanvas', function (event) {
-            const button = event.relatedTarget; // Кнопка, по которой кликнули
+            const button = event.relatedTarget;
             const imageUrl = button.getAttribute('data-image-url');
             const svgDefault = button.getAttribute('data-svg-default');
-
-            // Очистим содержимое
+            
             offcanvasBody.innerHTML = '';
 
-            // Если URL изображения существует, то покажем изображение, иначе покажем SVG
             if (imageUrl) {
                 offcanvasBody.innerHTML = `<img src="${imageUrl}" alt="User Image" style="width: 100px; height: 100px; border-radius: 50%;" />`;
             } else {

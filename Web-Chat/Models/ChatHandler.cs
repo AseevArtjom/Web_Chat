@@ -9,15 +9,12 @@ namespace Web_Chat.Models
 {
     public class ChatHandler
     {
-        // Список всех клиентов
         private static readonly List<WebSocket> Clients = new List<WebSocket>();
 
-        // Блокировка для обеспечения потокобезопасности
         private static readonly ReaderWriterLockSlim Locker = new ReaderWriterLockSlim();
 
         public static async Task WebSocketRequest(WebSocket socket)
         {
-            // Добавляем сокет клиента в список
             Locker.EnterWriteLock();
             try
             {
@@ -33,7 +30,6 @@ namespace Web_Chat.Models
 
             while (socket.State == WebSocketState.Open)
             {
-                // Ожидаем данных от клиента
                 var result = await socket.ReceiveAsync(segment, CancellationToken.None);
 
                 if (result.MessageType == WebSocketMessageType.Close)
@@ -42,7 +38,6 @@ namespace Web_Chat.Models
                 }
                 else
                 {
-                    // Передаем сообщение всем клиентам
                     for (int i = 0; i < Clients.Count; i++)
                     {
                         WebSocket client = Clients[i];
@@ -56,7 +51,6 @@ namespace Web_Chat.Models
                         }
                         catch (WebSocketException)
                         {
-                            // Удаляем сокет, если с ним возникла проблема
                             Locker.EnterWriteLock();
                             try
                             {
@@ -71,8 +65,6 @@ namespace Web_Chat.Models
                     }
                 }
             }
-
-            // Удаляем сокет клиента из списка при завершении
             Locker.EnterWriteLock();
             try
             {
