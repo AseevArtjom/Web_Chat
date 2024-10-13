@@ -1,0 +1,42 @@
+﻿@model HomeViewModels.HomeViewModel
+
+@{
+    ViewData["CurrentUserImg"] = ViewData["CurrentUserImg"];
+}
+
+
+
+<link rel="stylesheet" href="~/css/Home.css" />
+
+<body>
+    <div class="container-fluid" style="margin: 0;">
+        <div class="row" style="margin: 0;">
+            <!-- Список чатов -->
+            <div style="width:330px;" id="chatsList">
+                @Html.Partial("_ChatsListView", Model.ChatsListView)
+            </div>
+
+            <!-- Содержимое выбранного чата -->
+            <div class="col-md-8" id="chatMainContent">
+                @Html.Partial("_ChatMainView", Model.ChatMainView)
+            </div>
+        </div>
+    </div>
+</body>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#chatsList').on('click', '.chat-item', function () {
+                var chatId = $(this).data('chat-id');
+                $.get('/Home/OpenChat?chatId=' + chatId, function (data) {
+                    $('#chatMainContent').html(data.chatContent);
+                    scrollToBottom();
+                }).fail(function (xhr, status, error) {
+                    console.error('Error:', error);
+                    console.error('Answer:', xhr.responseText);
+                });
+            });
+        });
+    </script>
+}

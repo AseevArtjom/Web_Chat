@@ -1,0 +1,46 @@
+﻿body {
+    background-color: var(--dark-bg);
+    color: white;
+}
+input {
+    background: var(--dark-bg) !important;
+    color:white !important;
+}
+input::placeholder {
+    color: rgba(255,255,255,0.7);
+}
+textarea {
+    background: var(--dark-bg) !important;
+    color: white !important;
+}
+.form-control textarea {
+    background: var(--dark-bg);
+}
+
+.dropdown-menu {
+    background: var(--dark-bg);
+}
+.dropdown-menu a,.dropdown-menu button {
+    color: white !important;
+}
+.dropdown-menu a:hover,.dropdown-menu button:hover {
+    background-color: rgb(50, 50, 50);
+}
+.card {
+    background-color: var(--dark-bg) !important;
+    color: white;
+    border-color: white;
+}
+.card-header {
+    border-bottom: 1px solid white !important;
+    color: white;
+}
+.card-body {
+    color: white;
+}
+.chatMainView {
+    background-color: #91bd8c;
+}
+.NoAvatarImg{
+    color:white;
+}

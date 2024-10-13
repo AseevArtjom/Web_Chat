@@ -1,0 +1,58 @@
+﻿@using Web_Chat.Models.Form
+@model RegisterForm
+@{
+	Layout = "_Layout";
+	ViewData["Title"] = "Register";
+
+
+}
+<head>
+	<link rel="stylesheet" href="/css/Form.css">
+</head>
+<body>
+	<form method="post" enctype="multipart/form-data">
+		<div class="form_container">
+
+			<div class="d-flex" style="height:110px">
+
+				<div style="flex-direction:column;margin-right:20px;">
+					<label>First Name :</label>
+					<input type="text" placeholder="First Name..." asp-for=FirstName>
+					<p style="color: red;font-size: 13px">
+						@Html.ValidationMessageFor(x => x.FirstName)
+					</p>
+				</div>
+
+				<div style="flex-direction:column">
+					<label>Last Name :</label>
+					<input type="text" placeholder="Last Name..." asp-for=LastName>
+					<p style="color: red; font-size: 13px">
+						@Html.ValidationMessageFor(x => x.LastName)
+					</p>
+				</div>
+			</div>
+			
+			<label>Email :</label>
+			<input type="text" placeholder="Email..." asp-for=Email>
+			<p style="color: red; font-size: 13px">
+				@Html.ValidationMessageFor(x => x.Email)
+			</p>
+
+			<label>Password :</label>
+			<input type="text" placeholder="Password..." asp-for=Password>
+			<p style="color: red; font-size: 13px">
+				@Html.ValidationMessageFor(x => x.Password)
+			</p>
+
+			<label>Confirm Password :</label>
+			<input type="text" placeholder="Confirm Password..." asp-for=ConfirmPassword>
+			<p style="color: red; font-size: 13px">
+				@Html.ValidationMessageFor(x => x.Password)
+			</p>
+
+			<button type="submit" class="btn btn-success">Register</button>
+			<a asp-controller="Account" asp-action="Login" asp-route-return-url="@Context.Request.Query["ReturnUrl"]" class="btn btn-secondary">Login</a>
+		</div>
+	</form>
+
+</body>

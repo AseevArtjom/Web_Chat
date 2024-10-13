@@ -1,0 +1,363 @@
+﻿@using System.Security.Claims
+@model HomeViewModels.ChatMainViewModel
+
+@{
+    bool isDark = Context.Request.Cookies["theme"] == "dark";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    string userName = User.FindFirstValue("FirstName") + " " + User.FindFirstValue("LastName");
+}
+
+<style>
+    body {
+        overflow: hidden;
+    }
+
+    .message-card {
+        border: none;
+    }
+
+    .message-card .card-header {
+        border-bottom: 1px solid transparent !important;
+    }
+
+    #chatMainView {
+        background-image: url('@(isDark ? "/img/chat-bg-pattern-dark.png" : "/img/chat-bg-pattern-light.png")');
+        background-size: 30%;
+        background-position: center;
+        background-repeat: repeat;
+        height: 920px;
+        width: 1580px;
+
+        background-color: @(isDark ? "#0f0f0f" : "#91bd8c");
+    }
+
+
+
+    .chat-send-container {
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        margin-left:150px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+    }
+
+    .offcanvas{
+        background: @(isDark ? "var(--dark-bg);" : "white;");
+    }
+    .input-group{
+        margin-bottom:10px;
+    }
+
+    .input-group input {
+        pointer-events: none;
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+</style>
+
+<div class="chatMainView" id="chatMainView">
+    <div style="padding-top: 20px;
+        padding-left: 350px;
+        height: 800px;
+        overflow: auto;
+        " id="message-container">
+        @foreach (var message in Model.Messages)
+        {
+            if (message.SenderId.ToString() != User.FindFirstValue(ClaimTypes.NameIdentifier))
+            {
+                <div class="d-flex" style="margin-bottom:20px;">
+                    <button style="width:30px;height:30px;border:none;background:transparent;margin-top:35px;margin-right:10px;" data-bs-toggle="offcanvas" data-bs-target="#offcanvas-@message.SenderId" aria-controls="offcanvasRight">
+                        @if (message.SenderImageUrl != null)
+                        {
+                            <img src="@message.SenderImageUrl" alt="User Image" style="width: 35px; height: 35px; border-radius: 50%;" />
+                        }
+                        else
+                        {
+                            <svg width="30px" height="30px" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                            </svg>
+                        }
+                    </button>
+                    <div class="card message-card" style="margin-left:5px;">
+                        <div class="card-header" style="height:15px;">
+                            <strong>@message.Sender.FirstName @message.Sender.LastName</strong>
+                        </div>
+                        <div class="card-body" style="max-width:700px;">
+                            <h6 style="margin-bottom:0px;flex-wrap:wrap;">@message.Text</h6>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OffCanvas -->
+                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvas-@message.SenderId" aria-labelledby="offcanvasRightLabel">
+                    <div class="offcanvas-header" style="position: relative; padding: 0; height: 200px; overflow: hidden;">
+                        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close" style="position: absolute;top:20px;left:15px; z-index: 2;"></button>
+                        @if (message.SenderImageUrl != null)
+                        {
+                            <img src="@message.SenderImageUrl" alt="User Image" style="height:100%;width:100%;object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                            </svg>
+                        }
+                        <h5 class="offcanvas-title" style="position: absolute; bottom: 10px; left: 15px; color: white; z-index: 2; text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.7);">
+                            @message.Sender.FirstName @message.Sender.LastName
+                        </h5>
+                    </div>
+                    <div class="offcanvas-body">
+                        <div class="input-group">
+                            <div class="input-group-text">@@</div>
+                            <input type="text" class="form-control" id="specificSizeInputGroupUsername" placeholder="Username" value="@message.Sender.Email">
+                        </div>
+
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="bi bi-telephone"></i>
+                            </div>
+                            <input type="text" class="form-control" id="specificSizeInputGroupUsername" placeholder="Username" value="@(message.Sender.PhoneNumber ?? "-")">
+                        </div>
+
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <i class="bi bi-geo-alt"></i>
+                            </div>
+                            <input type="text" class="form-control" id="specificSizeInputGroupUsername" placeholder="Username" value="@(message.Sender.Location ?? "-")">
+                        </div>
+
+                        <div class="input-group">
+                            <div class="input-group-text">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cake2" viewBox="0 0 16 16">
+                                    <path d="m3.494.013-.595.79A.747.747 0 0 0 3 1.814v2.683q-.224.051-.432.107c-.702.187-1.305.418-1.745.696C.408 5.56 0 5.954 0 6.5v7c0 .546.408.94.823 1.201.44.278 1.043.51 1.745.696C3.978 15.773 5.898 16 8 16s4.022-.227 5.432-.603c.701-.187 1.305-.418 1.745-.696.415-.261.823-.655.823-1.201v-7c0-.546-.408-.94-.823-1.201-.44-.278-1.043-.51-1.745-.696A12 12 0 0 0 13 4.496v-2.69a.747.747 0 0 0 .092-1.004l-.598-.79-.595.792A.747.747 0 0 0 12 1.813V4.3a22 22 0 0 0-2-.23V1.806a.747.747 0 0 0 .092-1.004l-.598-.79-.595.792A.747.747 0 0 0 9 1.813v2.204a29 29 0 0 0-2 0V1.806A.747.747 0 0 0 7.092.802l-.598-.79-.595.792A.747.747 0 0 0 6 1.813V4.07c-.71.05-1.383.129-2 .23V1.806A.747.747 0 0 0 4.092.802zm-.668 5.556L3 5.524v.967q.468.111 1 .201V5.315a21 21 0 0 1 2-.242v1.855q.488.036 1 .054V5.018a28 28 0 0 1 2 0v1.964q.512-.018 1-.054V5.073c.72.054 1.393.137 2 .242v1.377q.532-.09 1-.201v-.967l.175.045c.655.175 1.15.374 1.469.575.344.217.356.35.356.356s-.012.139-.356.356c-.319.2-.814.4-1.47.575C11.87 7.78 10.041 8 8 8c-2.04 0-3.87-.221-5.174-.569-.656-.175-1.151-.374-1.47-.575C1.012 6.639 1 6.506 1 6.5s.012-.139.356-.356c.319-.2.814-.4 1.47-.575M15 7.806v1.027l-.68.907a.94.94 0 0 1-1.17.276 1.94 1.94 0 0 0-2.236.363l-.348.348a1 1 0 0 1-1.307.092l-.06-.044a2 2 0 0 0-2.399 0l-.06.044a1 1 0 0 1-1.306-.092l-.35-.35a1.935 1.935 0 0 0-2.233-.362.935.935 0 0 1-1.168-.277L1 8.82V7.806c.42.232.956.428 1.568.591C3.978 8.773 5.898 9 8 9s4.022-.227 5.432-.603c.612-.163 1.149-.36 1.568-.591m0 2.679V13.5c0 .006-.012.139-.356.355-.319.202-.814.401-1.47.576C11.87 14.78 10.041 15 8 15c-2.04 0-3.87-.221-5.174-.569-.656-.175-1.151-.374-1.47-.575-.344-.217-.356-.35-.356-.356v-3.02a1.935 1.935 0 0 0 2.298.43.935.935 0 0 1 1.08.175l.348.349a2 2 0 0 0 2.615.185l.059-.044a1 1 0 0 1 1.2 0l.06.044a2 2 0 0 0 2.613-.185l.348-.348a.94.94 0 0 1 1.082-.175c.781.39 1.718.208 2.297-.426" />
+                                </svg>
+                            </div>
+                            <input type="text" class="form-control" id="specificSizeInputGroupUsername" placeholder="Username" value="@(message.Sender.Birthday?.ToString("yyyy-MM-dd") ?? "-")">
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-end" style="margin-bottom:20px;max-width:800px;">
+                    <div class="card message-card" style="margin-left:5px;background-color: #d3f3d3;">
+                        <div class="card-header" style="height:15px;">
+                            <strong>You</strong>
+                        </div>
+                        <div class="card-body" style="max-width:700px;">
+                            <h6 style="margin-bottom:0px;flex-wrap:wrap;">@message.Text</h6>
+                        </div>
+                    </div>
+                    <button style="width:30px;height:30px;border:none;background:transparent;margin-top:35px;margin-right:5px;">
+                        @if (message.SenderImageUrl != null)
+                        {
+                            <img src="@message.SenderImageUrl" alt="User Image" style="width: 35px; height: 35px; border-radius: 50%;" />
+                        }
+                        else
+                        {
+                            <svg width="30px" height="30px" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+
+
+
+@if (Model.Messages != null && Model.Messages.Any())
+{
+    <input type="hidden" id="chat-id" value="@Model.Messages.First().ChatId" />
+}
+
+<div class="d-flex chat-send-container">
+    <input style="height: 50px;
+        width: 500px;
+        border-radius: 15px;
+        border: none;
+        padding-left: 20px;
+        margin-right: 10px;" type="text" id="chat-input-text" />
+    <button id="send" class="btn btn-primary" onclick="send_click()">
+        <i class="bi bi-send-fill"></i>
+    </button>
+</div>
+
+<script>
+    let socket;
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const messageContainer = document.getElementById('message-container');
+
+        console.log("UserImg : @Model.CurrentUserImgSrc");
+
+        console.log(messageContainer.scrollHeight);
+
+
+        if (window.WebSocket) {
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+            socket = new WebSocket("ws://localhost:5104/Web-Chat/ChatHandler.ashx");
+        } else {
+            return;
+        }
+
+        socket.onmessage = function (msg) {
+            console.log("Получено сообщение: ", msg.data);
+            var messageData = JSON.parse(msg.data);
+            console.log("Распарсенные данные сообщения:", messageData);
+
+            if (!messageData || !messageData.senderName) {
+                console.error('Неверные данные сообщения:', messageData);
+                return;
+            }
+            addNewMessage(messageData);
+            scrollToBottom();
+            
+        };
+
+        const offcanvasElement = document.getElementById('offcanvasRight');
+        const offcanvasBody = offcanvasElement.querySelector('.offcanvas-body');
+
+        offcanvasElement.addEventListener('show.bs.offcanvas', function (event) {
+            const button = event.relatedTarget; // Кнопка, по которой кликнули
+            const imageUrl = button.getAttribute('data-image-url');
+            const svgDefault = button.getAttribute('data-svg-default');
+
+            // Очистим содержимое
+            offcanvasBody.innerHTML = '';
+
+            // Если URL изображения существует, то покажем изображение, иначе покажем SVG
+            if (imageUrl) {
+                offcanvasBody.innerHTML = `<img src="${imageUrl}" alt="User Image" style="width: 100px; height: 100px; border-radius: 50%;" />`;
+            } else {
+                offcanvasBody.innerHTML = svgDefault;
+            }
+        });
+    });
+
+    function addNewMessage(messageData) {
+        var messageContainer = document.getElementById('message-container');
+
+        var newMessageElement = document.createElement('div');
+        newMessageElement.classList.add('message-item');
+
+        var currentUserName = '@User.FindFirstValue("FirstName") @User.FindFirstValue("LastName")';
+
+        var senderImage = messageData.senderImageUrl
+            ? `<img src="${messageData.senderImageUrl}" alt="User Image" style="width: 35px; height: 35px; border-radius: 50%;" />`
+            : `<svg width="30px" height="30px" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+            </svg>`;
+
+        if (messageData.senderName === currentUserName) {
+            newMessageElement.innerHTML = `
+                <div class="d-flex justify-content-end" style="margin-bottom:20px;max-width:800px;">
+                    <div class="card message-card" style="margin-left:5px;background-color: #d3f3d3;">
+                        <div class="card-header" style="height:15px;">
+                            <strong>You</strong>
+                        </div>
+                        <div class="card-body" style="max-width:700px;">
+                            <h6 style="margin-bottom:0px;flex-wrap:wrap;">${messageData.text} </h6>
+                        </div>
+                    </div>
+                        <button style="width:30px;height:30px;border:none;background:transparent;margin-top:35px;margin-right:5px;" data-bs-toggle="offcanvas" data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                        @if (!string.IsNullOrWhiteSpace(@Model.CurrentUserImgSrc))
+                        {
+                            <img src="@Model.CurrentUserImgSrc" alt="User Image" style="width: 35px; height: 35px; border-radius: 50%;" />
+                        }
+                        else
+                        {
+                            <svg width="30px" height="30px" xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0" />
+                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1" />
+                            </svg>
+                        }
+                    </button>
+                </div>
+            `;
+        } else {
+            newMessageElement.innerHTML = `
+                <div class="d-flex" style="margin-bottom:20px;">
+                            <button style="width:30px;height:30px;border:none;background:transparent;margin-top:35px;margin-right:5px;" >
+                        ${senderImage}
+                    </button>
+                    <div class="card message-card" style="margin-left:5px;">
+                        <div class="card-header" style="height:15px;">
+                            <strong>${messageData.senderName}</strong>
+                        </div>
+                        <div class="card-body" style="max-width:700px;">
+                            <h6 style="margin-bottom:0px;flex-wrap:wrap;">${messageData.text}</h6>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        messageContainer.appendChild(newMessageElement);
+    }
+
+
+
+
+    function send_click() {
+        var messageText = document.getElementById('chat-input-text').value;
+        var chatId = document.getElementById('chat-id').value;
+
+        if (messageText === '') {
+            return;
+        }
+
+        var messageDto = {
+            Text: messageText,
+            ChatId: chatId
+        };
+
+        let url = '@Url.Action("SendMessage", "Home")';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(messageDto)
+        })
+            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    alert('Не удалось отправить сообщение.');
+                } else {
+                    document.getElementById('chat-input-text').value = '';
+                    console.log('Сообщение отправлено:', response.message);
+
+                    if (socket && socket.readyState === WebSocket.OPEN) {
+                        var messageData = {
+                            text: messageDto.Text,
+                            senderName: "@userName",
+                            senderId: "@userId",
+                            senderImageUrl: response.message.senderImageUrl,
+                        };
+                        socket.send(JSON.stringify(messageData));
+                        
+                    } else {
+                        alert('Соединение WebSocket не установлено.');
+                    }
+                }
+            })
+            .catch(error => {
+                alert('Ошибка отправки сообщения: ' + error.message);
+            });
+    }
+
+</script>
+
+

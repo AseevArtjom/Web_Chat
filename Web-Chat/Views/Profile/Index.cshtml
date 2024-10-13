@@ -1,0 +1,251 @@
+﻿@using System.Security.Claims;
+@model Web_Chat.Models.Form.EditProfileForm;
+@{
+    ViewData["Title"] = "Profile";
+
+    var birthday = ViewData["Birthday"] as DateOnly?;
+    string formattedBirthday = birthday.HasValue ? birthday.Value.ToString("yyyy-MM-dd") : "";
+}
+
+<link rel="stylesheet" href="~/css/Profile.css" />
+
+<body>
+    <form id="editProfileForm" method="post" asp-action="Edit" enctype="multipart/form-data">
+        <div class="container-xl px-4 mt-4">
+            <div class="row">
+                <div class="col-xl-4">
+                    <div class="card mb-4 mb-xl-0">
+                        <div class="card-header">Profile Picture</div>
+                        <div id="ProfileImageForm" class="card-body text-center">
+                            <img class="img-account-profile rounded-circle mb-2" style="max-height:200px;max-width:200px;min-height:80px;min-width:100px;" id="ProfileImage" src="@ViewData["ProfileImageSrc"]" alt="">
+                            <div class="small font-italic text-muted mb-4">JPG or PNG no larger than 5 MB</div>
+                            <input type="file" name="ProfileImage" accept="image/*" id="ProfileImageInput" style="display: none;" />
+                            <button class="btn btn-secondary" id="CancelUploadImage" type="button" style="display: none;">Cancel</button>
+                            <button class="btn btn-danger" id="DeleteProfileImage" type="button">Delete</button>
+                            <button class="btn btn-primary" id="UpdateProfileImage" type="button">Upload new image</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-8">
+                    <div class="card mb-4">
+                        <div class="card-header">Account Details</div>
+                        <div class="card-body">
+                            <div class="row gx-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputFirstName">First name</label>
+                                    <input class="form-control" id="inputFirstName" type="text" name="FirstName" placeholder="Enter your first name" value="@ViewData["FirstName"]" >
+                                    <p id="FirstNameError" class="ErrorLabel"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputLastName">Last name</label>
+                                    <input class="form-control" id="inputLastName" type="text" name="LastName" placeholder="Enter your last name" value="@ViewData["LastName"]">
+                                    <p id="LastNameError" class="ErrorLabel"></p>
+                                </div>
+                            </div>
+                            <div class="row gx-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputEmailAddress">Email address</label>
+                                    <input class="form-control" id="inputEmailAddress" type="email" name="Email" placeholder="Enter your email address" value="@ViewData["Email"]" >
+                                    <p id="EmailError" class="ErrorLabel"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputLocation">Location</label>
+                                    <input class="form-control" id="inputLocation" type="text" name="Location" placeholder="Enter your location" value="@ViewData["Location"]">
+                                    <p id="LocationError" class="ErrorLabel"></p>
+                                </div>
+                            </div>
+                            <div class="row gx-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputPhone">Phone number</label>
+                                    <input class="form-control" id="inputPhone" type="tel" name="Phone" placeholder="Enter your phone number" value="@ViewData["PhoneNumber"]">
+                                    <p id="PhoneError" class="ErrorLabel"></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small mb-1" for="inputBirthday">Birthday</label>
+                                    <input class="form-control" id="inputBirthday" type="date" name="BirthDay" placeholder="Enter your birthday" value="@formattedBirthday">
+                                    <p id="BirthdayError" class="ErrorLabel"></p>
+                                </div>
+                            </div>
+                            <div class="row gx-3 mb-3">
+                                <div class="col-md-12">
+                                    <label class="small mb-1" for="inputBio">About me</label>
+                                    <textarea class="form-control" style="height: 170px;resize:none;font-size:16px;" id="inputBio" name="Bio" placeholder="Enter your bio">@ViewData["Bio"]</textarea>
+                                    <p id="BioError" class="ErrorLabel"></p>
+                                </div>
+                            </div>
+                            <!-- Save changes button-->
+                            <button type="submit" id="saveChangesButton" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+
+    <script>
+        document.getElementById("editProfileForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            Swal.fire({
+                title: "Save changes?",
+                showDenyButton: true,
+                confirmButtonText: "Confirm",
+                denyButtonText: "Deny",
+            }).then((answer) => {
+                if (answer.isConfirmed) {
+                    let formData = new FormData(this);
+                    let data = {};
+
+                    formData.forEach((value, key) => {
+                        if (key === "BirthDay") {
+                            data[key] = value === '' ? null : value;
+                        } else {
+                            data[key] = value;
+                        }
+                    });
+
+                    let url = '@Url.Action("Edit", "Profile")';
+
+                    fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(data)
+                    })
+                        .then(response => response.json())
+                        .then(result => {
+                            clearErrors();
+
+                            if (result.ok) {
+                                Swal.fire("Profile successfully updated", "", "success")
+                                    .then(() => {
+                                        window.location.reload();
+                                    });
+                            } else {
+                                ErrorHandler(result.name, result.error);
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire("Error", error.message || "Something went wrong", "error");
+                        });
+                } else {
+                    window.location.reload();
+                }
+            });
+        });
+
+
+        document.getElementById("UpdateProfileImage").addEventListener("click", function () {
+            document.getElementById("ProfileImageInput").click();
+        });
+
+        document.getElementById("DeleteProfileImage").addEventListener("click", function () {
+            Swal.fire({
+                title: "Are you sure you want to delete your profile picture?",
+                showDenyButton: true,
+                confirmButtonText: "Delete",
+                denyButtonText: "Cancel",
+            }).then((answer) => {
+                if (answer.isConfirmed) {
+                    let url = '@Url.Action("DeleteProfileImage", "Profile")';
+
+                    fetch(url, {
+                        method: "POST"
+                    })
+                        .then(response => {
+                            if (response.ok) {
+                                Swal.fire("Profile picture successfully deleted!", "", "success")
+                                    .then(() => {
+                                        window.location.reload();
+                                    });
+                            } else {
+                                Swal.fire("Error", "Failed to delete the image", "error");
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire("Error", "An error occurred while deleting the image", "error");
+                        });
+                }
+            });
+        });
+        
+        document.getElementById("CancelUploadImage").addEventListener("click", function () {
+            this.style.display = "none";
+
+            document.getElementById("ProfileImageInput").value = "";
+            document.getElementById("ProfileImage").src = "@ViewData["ProfileImageSrc"]";
+            window.location.reload();
+        });
+
+        document.getElementById("ProfileImageInput").addEventListener("change", function () {
+            const file = this.files[0];
+
+            if (file) {
+                const objectUrl = URL.createObjectURL(file);
+                document.getElementById("ProfileImage").src = objectUrl;
+
+                if (!document.getElementById("saveImageButton")) {
+                    const saveButtonHtml = `<button id="saveImageButton" type="button" class="btn btn-success">Save</button>`;
+                    const profileImageForm = document.getElementById("ProfileImageForm");
+                    profileImageForm.insertAdjacentHTML('beforeend', saveButtonHtml);
+
+                    // Показываем кнопку Cancel
+                    document.getElementById("CancelUploadImage").style.display = "inline-block";
+                    document.getElementById("DeleteProfileImage").style.display = "none";
+
+                    document.getElementById("saveImageButton").addEventListener("click", function () {
+                        let url = '@Url.Action("UpdateProfileImage", "Profile")';
+
+                        let formData = new FormData();
+                        const FileInput = document.getElementById("ProfileImageInput");
+                        if (FileInput.files[0]) {
+                            formData.append("ProfileImage", FileInput.files[0]);
+                        }
+
+                        fetch(url, {
+                            method: "POST",
+                            body: formData
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    return response.json();
+                                }
+                            })
+                            .then(res => {
+                                Swal.fire("Image successfully changed!", "", "success").then(() => {
+                                    window.location.reload();
+                                });
+                            })
+                            .catch(error => {
+                                Swal.fire("Error", "", "error").then(() => {
+                                    window.location.reload();
+                                });
+                            });
+                    });
+                }
+            } else {
+                console.log("No file chosen");
+            }
+        });
+
+
+
+        function clearErrors() {
+            document.querySelectorAll("p[id$='Error']").forEach((errorElement) => {
+                errorElement.textContent = "";
+            });
+        }
+
+        function ErrorHandler(fieldName, errorMessage) {
+            let errorElement = document.getElementById(fieldName + "Error");
+            if (errorElement) {
+                errorElement.textContent = errorMessage;
+            }
+        }
+
+
+    </script>
+</body>

@@ -1,0 +1,126 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Web_Chat</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/Layout.css" />
+
+    @if (Context.Request.Cookies.ContainsKey("theme"))
+    {
+        if (Context.Request.Cookies["theme"] == "dark")
+        {
+            <link href="~/css/dark-theme.css" rel="stylesheet" type="text/css" />
+        }
+        else if (Context.Request.Cookies["theme"] == "light")
+        {
+            <link href="~/css/light-theme.css" rel="stylesheet" type="text/css" />
+        }
+    }
+    else
+    {
+        <link href="~/css/light-theme.css" rel="stylesheet" type="text/css" />
+    }
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <header>
+        @if (User.Identity.IsAuthenticated)
+        {
+            <nav class="navbar navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <button style="margin-left:20px" class="btn btn-outline dropdown" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <ul class="dropdown-menu" style="margin-left:30px">
+                        <li>
+                            <a class="dropdown-item" asp-controller="Home" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="margin-left:-3px;margin-bottom:2px" width="16" height="16" fill="currentColor" class="bi bi-chat-dots-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8c0 3.866-3.582 7-8 7a9 9 0 0 1-2.347-.306c-.584.296-1.925.864-4.181 1.234-.2.032-.352-.176-.273-.362.354-.836.674-1.95.77-2.966C.744 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7M5 8a1 1 0 1 0-2 0 1 1 0 0 0 2 0m4 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0m3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2" />
+                                </svg>
+                                Chats
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" style="margin-left:-3px;margin-bottom:2px" width="20" height="20" fill="currentColor" class="bi bi-person-fill" viewBox="0 0 16 16">
+                                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6" />
+                                </svg>
+                                Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" style="cursor:default">
+                                <div class="form-switch">
+                                    <i class="bi bi-moon-fill" style="margin-left:-40px"></i>
+                                    <label class="form-check-label">Dark mode</label>
+                                    <input class="form-check-input" style="margin-left:2px;" type="checkbox" role="switch" id="themeCheckbox" @(Context.Request.Cookies["theme"] == "dark" ? "checked" : "")>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item">
+                                <i class="bi bi-gear-fill"></i>
+                                Settings
+                            </a>
+                        </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li>
+                                <a class="dropdown-item">
+                                    <i class="bi bi-people-fill"></i>
+                                    Users
+                                </a>
+                            </li>
+                        }
+                        <li>
+                            <form method="post" asp-controller="Account" asp-action="Logout">
+                                <button class="dropdown-item">
+                                    <i class="bi bi-box-arrow-left"></i>
+                                    Logout
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        }
+    </header>
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+
+    <script>
+        document.getElementById('themeCheckbox').addEventListener('change', function () {
+            const checkbox = document.getElementById('themeCheckbox');
+            const theme = checkbox.checked ? 'dark' : 'light';
+            const url = '@Url.Action("ChangeTheme", "Theme")';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ theme: theme })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        });
+
+    </script>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+    @RenderSection("script", required: false)
+</body>
+</html>

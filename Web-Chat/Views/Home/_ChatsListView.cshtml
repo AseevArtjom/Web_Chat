@@ -1,0 +1,83 @@
+﻿@using static Web_Chat.Models.HomeViewModels
+@model ChatsListViewModel
+
+<div class="container" style="">
+    <div class="row chatlist" style="margin-top:20px;padding:5px;">
+        @foreach (var chat in Model.Chats)
+        {
+            <div class="card" style="margin-bottom:10px;cursor:pointer;width:290px;">
+                <button class="btn colorButton chat-btn"
+                        style="width:289px; height:70px; margin-left:-12px; text-align:left; @(Context.Request.Cookies.ContainsKey("theme") && Context.Request.Cookies["theme"] == "dark" ? "color:white;" : "")"
+                        data-chat-id="@chat.Id">
+                    <p style="height:15px;">@chat.Name</p>
+                    <p>123</p>
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .btn-no-focus:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    .btn-indigo-active {
+        background-color: #756ac8 !important;
+    }
+
+    .btn-indigo-active:hover {
+        color: white;
+    }
+
+    .chatlist {
+        width: 300px;
+        max-height: 900px;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .chatlist::-webkit-scrollbar {
+        display: none;
+    }
+</style>
+
+
+<script>
+    document.querySelectorAll('.colorButton').forEach(button => {
+        button.addEventListener('click', function () {
+            selectChat(this);
+        });
+    });
+
+    function selectChat(button) {
+        document.querySelectorAll('.colorButton').forEach(btn => {
+            btn.classList.remove('btn-indigo-active');
+        });
+        button.classList.add('btn-indigo-active');
+        openChat(button.dataset.chatId);
+    }
+
+    function openChat(chatId) {
+        fetch(`/Home/OpenChat?chatId=${chatId}`)
+            .then(response => response.json())
+            .then(data => {
+                const chatMainView = document.getElementById('chatMainContent');
+                chatMainView.innerHTML = data.chatContent;
+
+                scrollToBottom();
+            })
+            .catch(error => console.error('Ошибка:', error));
+    }
+
+    function scrollToBottom() {
+        var messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            messageContainer.scrollTop = messageContainer.scrollHeight;
+        }
+    }
+
+</script>
